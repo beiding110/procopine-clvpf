@@ -16,6 +16,7 @@ Clvpf.prototype = {
     },
     show(index) {
         //打开提示
+        this.close();
 
         this.$activeIndex = index || 0;
         let doms = this.$options.target,
@@ -23,7 +24,7 @@ Clvpf.prototype = {
 
         doms.forEach((item) => {
             let dom = document.querySelector(item.el),
-                animate = item.animate || 'shake',
+                animate = item.ani || 'shake',
                 domOffset = getOffset.call(this, dom);
 
             var left = domOffset.left,
@@ -38,13 +39,14 @@ Clvpf.prototype = {
                     top,
                     width: dom.offsetWidth,
                     height: dom.offsetHeight,
-                    text: item.text
+                    text: item.text,
+                    pos: item.pos || 'bottom'
                 });
             }
         });
 
         this.$dom = _dom;
-        this.$dom.position = 'relative';
+        this.$el.style.position = 'relative';
 
         this.next();
         console.log(_dom)
@@ -58,12 +60,57 @@ Clvpf.prototype = {
         if(current) {
             current.dom.classList.add(current.class);
 
-            var dialog = creatDialog.call(this, current.text);
+            var dialog = creatDialog.call(this, current, (this.$dom.length === ( this.$activeIndex + 1 )) );
             dialog.style.position = 'absolute';
-            dialog.style.left = current.left + (current.width / 2) + 'px';
-            dialog.style.top = current.top + current.height + 'px';
             this.$el.appendChild(dialog);
             this.$dialog = dialog;
+
+            const DIALOG_HALF_WIDTH = dialog.offsetWidth/2,
+                DIALOG_HALF_HEIGHT = dialog.offsetHeight/2,
+                VIEW_WIDTH = document.body.offsetWidth;
+
+            const CURRENT_WIDTH_LEFT_RATIO = {
+                left: 0,
+                right: 1,
+                top: 0.5,
+                bottom: 0.5
+            }, DIALOG_HALF_WIDTH_LEFT_RATIO = {
+                left: -2,
+                right: 0,
+                top: -1,
+                bottom: -1
+            };
+
+            const EL_POS_LEFT = (current.width * (CURRENT_WIDTH_LEFT_RATIO[current.pos]));
+
+            dialog.style.left = current.left
+                + EL_POS_LEFT
+                + (DIALOG_HALF_WIDTH * DIALOG_HALF_WIDTH_LEFT_RATIO[current.pos])
+                + 'px';
+
+            const CURRENT_HEIGHT_TOP_RATIO = {
+                left: 0.5,
+                right: 0.5,
+                top: 0,
+                bottom: 1
+            }, DIALOG_HALF_HEIGHT_TOP_RATIO = {
+                left: -1,
+                right: -1,
+                top: -2,
+                bottom: 0
+            }
+            dialog.style.top = current.top
+                + (current.height * CURRENT_HEIGHT_TOP_RATIO[current.pos])
+                + (DIALOG_HALF_HEIGHT * DIALOG_HALF_HEIGHT_TOP_RATIO[current.pos])
+                + 'px';
+
+            //位置控制
+            // if(DIALOG_HALF_WIDTH > EL_POS_LEFT) {
+            //     dialog.style.left = DIALOG_HALF_WIDTH + 'px';
+            // } else if (VIEW_WIDTH - DIALOG_HALF_WIDTH < EL_POS_LEFT) {
+            //     dialog.style.left = 'auto';
+            //     dialog.style.right = -DIALOG_HALF_WIDTH + 'px';
+            // }
 
             this.$activeIndex ++;
         }
@@ -71,9 +118,15 @@ Clvpf.prototype = {
     },
     close() {
         //关闭提示
-        this.$el.removeChild(this.$dialog)
-        var last = this.$dom[this.$activeIndex - 1];
-        last && last.dom.classList.remove(last.class);
+        if(this.$dialog) {
+            //清除上一次的弹框
+            this.$el.removeChild(this.$dialog);
+            this.$dialog = null;
+
+            //移除上一个重点组件的激活状态
+            var last = this.$dom[this.$activeIndex - 1];
+            last && last.dom.classList.remove(last.class);
+        };
     }
 };
 
@@ -101,13 +154,14 @@ function getOffset(node) {
     }
 }
 
-function creatDialog(text) {
+function creatDialog(node, noNext) {
     var dialog = document.createElement('div');
     dialog.classList.add('clvpf-dialog');
+    dialog.classList.add('clvpf-dialog_' + node.pos);
 
     var dialogBody = document.createElement('div');
     dialogBody.classList.add('clvpf-dialog_body');
-    dialogBody.innerText = text;
+    dialogBody.innerText = node.text;
 
     var dialogFooter = document.createElement('div');
     dialogFooter.classList.add('clvpf-dialog_footer');
@@ -116,22 +170,29 @@ function creatDialog(text) {
     btnClose.classList.add('clvpf-btn_close');
     btnClose.innerText = '关闭';
 
-    var btnNext = document.createElement('span');
-    btnNext.classList.add('clvpf-btn_next');
-    btnNext.innerText = '下一个';
+
 
     btnClose.addEventListener('click', () => {
         this.close();
     });
 
-    btnNext.addEventListener('click', () => {
-        this.next();
-    });
+
 
     dialog.appendChild(dialogBody);
     dialogFooter.appendChild(btnClose);
-    dialogFooter.appendChild(btnNext);
     dialog.appendChild(dialogFooter);
+
+    if(!noNext) {
+        var btnNext = document.createElement('span');
+        btnNext.classList.add('clvpf-btn_next');
+        btnNext.innerText = '下一个';
+
+        btnNext.addEventListener('click', () => {
+            this.next();
+        });
+
+        dialogFooter.appendChild(btnNext);
+    }
 
     return dialog;
 }

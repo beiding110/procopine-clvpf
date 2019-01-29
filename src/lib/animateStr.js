@@ -1,7 +1,6 @@
-const SCALE_SIZE = 1.2,
-    ROTATE_RANGE = 10
-
-const SHAKE_STEP = 10;
+const SCALE_SIZE = 1.2,//缩放大小
+    ROTATE_RANGE = 10,//抖动角度
+    SHAKE_STEP = 10;//抖动次数
 var shake = '\
 .clvpf-animate_shake{\
     animation:shake 2s infinite;\
@@ -22,6 +21,17 @@ var shake = '\
     74% {transform:scale(' + SCALE_SIZE + ');}\
     100% {transform:none;}\
 }\
-'
+';
 
-module.exports = shake
+const BOLD_COLOR = '#9E44A1',//阴影颜色
+    BOLD_SIZE = '10px';
+var shadow = '\
+.clvpf-animate_shadow{animation:shadow 2s infinite;}\
+@keyframes shadow{\
+    0% {box-shadow: none;}\
+    50% {box-shadow: 0 0 ' + BOLD_SIZE + ' ' + BOLD_COLOR +';}\
+    100% {box-shadow: none;}\
+}\
+';
+
+module.exports = (shake + shadow)

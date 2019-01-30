@@ -9,6 +9,7 @@ Clvpf.prototype = {
     init(obj) {
         this.$options = obj;
         this.$el = document.querySelector(obj.el);
+        this.$el.style.position = 'relative';
         this.$activeIndex = 0;
 
         creatStyle(animateStr);
@@ -46,7 +47,6 @@ Clvpf.prototype = {
         });
 
         this.$dom = _dom;
-        this.$el.style.position = 'relative';
 
         this.next();
         console.log(_dom)
@@ -61,12 +61,11 @@ Clvpf.prototype = {
             current.dom.classList.add(current.class);
 
             var dialog = creatDialog.call(this, current, (this.$dom.length === ( this.$activeIndex + 1 )) );
-            dialog.style.position = 'absolute';
             this.$el.appendChild(dialog);
             this.$dialog = dialog;
 
-            const DIALOG_HALF_WIDTH = dialog.offsetWidth/2,
-                DIALOG_HALF_HEIGHT = dialog.offsetHeight/2,
+            const DIALOG_HALF_WIDTH = dialog.offsetWidth/2,//弹框半宽度
+                DIALOG_HALF_HEIGHT = dialog.offsetHeight/2,//弹框半高度
                 VIEW_WIDTH = document.body.offsetWidth;
 
             const CURRENT_WIDTH_LEFT_RATIO = {
@@ -80,9 +79,7 @@ Clvpf.prototype = {
                 top: -1,
                 bottom: -1
             };
-
             const EL_POS_LEFT = (current.width * (CURRENT_WIDTH_LEFT_RATIO[current.pos]));
-
             dialog.style.left = current.left
                 + EL_POS_LEFT
                 + (DIALOG_HALF_WIDTH * DIALOG_HALF_WIDTH_LEFT_RATIO[current.pos])
@@ -102,6 +99,7 @@ Clvpf.prototype = {
             dialog.style.top = current.top
                 + (current.height * CURRENT_HEIGHT_TOP_RATIO[current.pos])
                 + (DIALOG_HALF_HEIGHT * DIALOG_HALF_HEIGHT_TOP_RATIO[current.pos])
+                + 8
                 + 'px';
 
             //位置控制
@@ -131,6 +129,7 @@ Clvpf.prototype = {
 };
 
 function creatStyle(styleStr) {
+    //创建一个包含参数内容的style标签；
     var styleNode = document.createElement('style');
     styleNode.innerHTML = styleStr;
 
@@ -138,6 +137,7 @@ function creatStyle(styleStr) {
 }
 
 function getOffset(node) {
+    //获取元素相对于$el的左边距、上边距
     var left = node.offsetLeft,
         top = node.offsetTop,
         pOffset = {
@@ -155,6 +155,7 @@ function getOffset(node) {
 }
 
 function creatDialog(node, noNext) {
+    //创建一个包含指定内容的dialog；
     var dialog = document.createElement('div');
     dialog.classList.add('clvpf-dialog');
     dialog.classList.add('clvpf-dialog_' + node.pos);
@@ -170,13 +171,9 @@ function creatDialog(node, noNext) {
     btnClose.classList.add('clvpf-btn_close');
     btnClose.innerText = '关闭';
 
-
-
     btnClose.addEventListener('click', () => {
         this.close();
     });
-
-
 
     dialog.appendChild(dialogBody);
     dialogFooter.appendChild(btnClose);

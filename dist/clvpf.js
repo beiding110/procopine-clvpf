@@ -10996,6 +10996,7 @@ Clvpf.prototype = {
     init: function init(obj) {
         this.$options = obj;
         this.$el = document.querySelector(obj.el);
+        this.$el.style.position = 'relative';
         this.$activeIndex = 0;
 
         creatStyle(animateStr);
@@ -11035,7 +11036,6 @@ Clvpf.prototype = {
         });
 
         this.$dom = _dom;
-        this.$el.style.position = 'relative';
 
         this.next();
         console.log(_dom);
@@ -11050,13 +11050,14 @@ Clvpf.prototype = {
             current.dom.classList.add(current.class);
 
             var dialog = creatDialog.call(this, current, this.$dom.length === this.$activeIndex + 1);
-            dialog.style.position = 'absolute';
             this.$el.appendChild(dialog);
             this.$dialog = dialog;
 
             var DIALOG_HALF_WIDTH = dialog.offsetWidth / 2,
-                DIALOG_HALF_HEIGHT = dialog.offsetHeight / 2,
-                VIEW_WIDTH = document.body.offsetWidth;
+                //弹框半宽度
+            DIALOG_HALF_HEIGHT = dialog.offsetHeight / 2,
+                //弹框半高度
+            VIEW_WIDTH = document.body.offsetWidth;
 
             var CURRENT_WIDTH_LEFT_RATIO = {
                 left: 0,
@@ -11070,9 +11071,7 @@ Clvpf.prototype = {
                 top: -1,
                 bottom: -1
             };
-
             var EL_POS_LEFT = current.width * CURRENT_WIDTH_LEFT_RATIO[current.pos];
-
             dialog.style.left = current.left + EL_POS_LEFT + DIALOG_HALF_WIDTH * DIALOG_HALF_WIDTH_LEFT_RATIO[current.pos] + 'px';
 
             var CURRENT_HEIGHT_TOP_RATIO = {
@@ -11087,7 +11086,7 @@ Clvpf.prototype = {
                 top: -2,
                 bottom: 0
             };
-            dialog.style.top = current.top + current.height * CURRENT_HEIGHT_TOP_RATIO[current.pos] + DIALOG_HALF_HEIGHT * DIALOG_HALF_HEIGHT_TOP_RATIO[current.pos] + 'px';
+            dialog.style.top = current.top + current.height * CURRENT_HEIGHT_TOP_RATIO[current.pos] + DIALOG_HALF_HEIGHT * DIALOG_HALF_HEIGHT_TOP_RATIO[current.pos] + 8 + 'px';
 
             //位置控制
             // if(DIALOG_HALF_WIDTH > EL_POS_LEFT) {
@@ -11116,6 +11115,7 @@ Clvpf.prototype = {
 };
 
 function creatStyle(styleStr) {
+    //创建一个包含参数内容的style标签；
     var styleNode = document.createElement('style');
     styleNode.innerHTML = styleStr;
 
@@ -11123,6 +11123,7 @@ function creatStyle(styleStr) {
 }
 
 function getOffset(node) {
+    //获取元素相对于$el的左边距、上边距
     var left = node.offsetLeft,
         top = node.offsetTop,
         pOffset = {
@@ -11142,6 +11143,7 @@ function getOffset(node) {
 function creatDialog(node, noNext) {
     var _this2 = this;
 
+    //创建一个包含指定内容的dialog；
     var dialog = document.createElement('div');
     dialog.classList.add('clvpf-dialog');
     dialog.classList.add('clvpf-dialog_' + node.pos);
@@ -11242,12 +11244,12 @@ module.exports = shake + shadow;
 /***/ (function(module, exports) {
 
 var styleString = '\
-.clvpf-dialog{display:inline-block; max-width:200px; cursor:default;}\
+.clvpf-dialog{display:inline-block; max-width:200px; cursor:default; position:absolute;}\
 .clvpf-dialog .clvpf-dialog_body{display:inline-block; background:black; color:white; padding:.3em .5em; border-radius:3px; position:relative; min-width:4em; text-align:center;}\
 .clvpf-dialog .clvpf-dialog_body::before{content:" "; position: absolute; width:0; height:0; transform:translate(-50%,-50%); border:8px solid;}\
-.clvpf-dialog.clvpf-dialog_top .clvpf-dialog_body::before{border-color:black rgba(0,0,0,0) rgba(0,0,0,0) rgba(0,0,0,0); bottom:-8px; left:50%;}\
+.clvpf-dialog.clvpf-dialog_top .clvpf-dialog_body::before{border-color:black rgba(0,0,0,0) rgba(0,0,0,0) rgba(0,0,0,0); bottom:-24px; left:50%;}\
 .clvpf-dialog.clvpf-dialog_bottom .clvpf-dialog_body::before{border-color:rgba(0,0,0,0) rgba(0,0,0,0) black rgba(0,0,0,0); top:-8px; left:50%;}\
-.clvpf-dialog.clvpf-dialog_left .clvpf-dialog_body::before{border-color:rgba(0,0,0,0) rgba(0,0,0,0) rgba(0,0,0,0) black; top: 50%; right:-8px;}\
+.clvpf-dialog.clvpf-dialog_left .clvpf-dialog_body::before{border-color:rgba(0,0,0,0) rgba(0,0,0,0) rgba(0,0,0,0) black; top: 50%; right:-24px;}\
 .clvpf-dialog.clvpf-dialog_right .clvpf-dialog_body::before{border-color:rgba(0,0,0,0) black rgba(0,0,0,0) rgba(0,0,0,0); top:50%; left:-8px;}\
 .clvpf-dialog .clvpf-dialog_footer{font-size:10px; overflow:hidden;}\
 .clvpf-dialog .clvpf-dialog_footer span[class^=clvpf-btn_]{cursor:pointer;}\

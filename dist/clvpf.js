@@ -11191,28 +11191,46 @@ module.exports = Clvpf;
   !*** ./src/Dialog.js ***!
   \***********************/
 /*! no static exports found */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-function Doalog() {
-    this.init();
+var ajax = __webpack_require__(/*! ./lib/ajax.js */ "./src/lib/ajax.js");
+
+function Doalog(obj) {
+    this.init(obj);
 }
 
 Doalog.prototype = {
-    init: function init() {
+    init: function init(obj) {
         this.$dialog = null;
         this.$textarea = null;
         this.$file_btn = null;
         this.$file = null;
         this.$submit = null;
 
+        this.$url = obj.url;
+
         document.body.appendChild(creatDom.call(this));
     },
     submit: function submit() {
-        var json = {
-            text: this.$textarea.value
-        };
+        // var json = {
+        //     text: this.$textarea.value
+        // };
+        //
+        // console.log(json);
 
-        console.log(json);
+        var formdata = new FormData();
+        formdata.append("text", this.$textarea.value);
+        formdata.append("file", this.$file.files[0]);
+        console.log(formdata.get("file"));
+
+        ajax({
+            type: 'post',
+            url: this.$url,
+            data: formdata,
+            success: function success(res) {},
+            error: function error() {}
+        });
+
         this.close();
     },
     show: function show() {
@@ -11224,11 +11242,22 @@ Doalog.prototype = {
     },
     clear: function clear() {
         this.$textarea.value = '';
+        this.$file.value = '';
+        this.$preview.parentNode.style.display = 'none';
+        this.$preview.src = '';
+    },
+    updatePreview: function updatePreview() {
+        var src = getObjectURL(this.$file.files[0]);
+        this.$preview.src = src;
+        !!src && (this.$preview.parentNode.style.display = 'inline-block');
     }
 };
 
 function creatDom() {
     var _this = this;
+
+    var cover = document.createElement('div');
+    cover.classList.add('clvpf-fb_cover');
 
     var dialog = document.createElement('div');
     dialog.classList.add('clvpf-fb-dialog');
@@ -11269,6 +11298,8 @@ function creatDom() {
     var itemContent_upoload = document.createElement('div');
     itemContent_upoload.classList.add('dialog_item_content');
 
+    var file_btn_con = document.createElement('div');
+
     var btn_upoload = document.createElement('button');
     btn_upoload.classList.add('btn', 'btn-submit');
     btn_upoload.innerText = '点击上传';
@@ -11277,14 +11308,26 @@ function creatDom() {
     var input_file = document.createElement('input');
     input_file.classList.add('btn', 'btn-upload_input');
     input_file.type = 'file';
+    input_file.accept = 'image/*';
+    input_file.addEventListener('change', function () {
+        _this.updatePreview();
+    });
     this.$file = input_file;
 
     btn_upoload.addEventListener('click', function () {
         input_file.click();
     });
 
-    itemContent_upoload.appendChild(btn_upoload);
-    itemContent_upoload.appendChild(input_file);
+    var preivew_con = document.createElement('div');
+    preivew_con.classList.add('preview-con');
+    var img = document.createElement('img');
+    this.$preview = img;
+    preivew_con.appendChild(img);
+
+    file_btn_con.appendChild(btn_upoload);
+    file_btn_con.appendChild(input_file);
+    itemContent_upoload.appendChild(file_btn_con);
+    itemContent_upoload.appendChild(preivew_con);
     item_upoload.appendChild(label_upoload);
     item_upoload.appendChild(itemContent_upoload);
 
@@ -11310,9 +11353,31 @@ function creatDom() {
     dialog.appendChild(body);
     dialog.appendChild(footer);
 
-    this.$dialog = dialog;
+    cover.appendChild(dialog);
+    cover.addEventListener('click', function (e) {
+        e.stopPropagation();
+        e.preventDefault();
 
-    return dialog;
+        e.target === cover && _this.close();
+    });
+    this.$dialog = cover;
+
+    return cover;
+}
+
+function getObjectURL(file) {
+    var url = null;
+    if (window.createObjectURL != undefined) {
+        // basic
+        url = window.createObjectURL(file);
+    } else if (window.URL != undefined) {
+        // mozilla(firefox)
+        url = window.URL.createObjectURL(file);
+    } else if (window.webkitURL != undefined) {
+        // webkit or chrome
+        url = window.webkitURL.createObjectURL(file);
+    }
+    return url;
 }
 
 module.exports = Doalog;
@@ -11329,9 +11394,49 @@ module.exports = Doalog;
 var Clvpf = __webpack_require__(/*! ./Clvpf */ "./src/Clvpf.js");
 var Dialog = __webpack_require__(/*! ./Dialog */ "./src/Dialog.js");
 
-new Dialog();
+var _tag = document.querySelector('[ref=clvps]');
+var $init_url = _tag.getAttribute('init'),
+    $submit_url = _tag.getAttribute('submit');
+
+var _dialog = new Dialog({
+    url: $submit_url
+});
 
 module.exports = Clvpf;
+
+/***/ }),
+
+/***/ "./src/lib/ajax.js":
+/*!*************************!*\
+  !*** ./src/lib/ajax.js ***!
+  \*************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+function ajax(obj) {
+    // var args = [];
+    // args.push.apply(args, arguments);
+    //
+    // console.log()
+
+    !obj.url && console.error('必须设置url属性');
+
+    var xhr = new XMLHttpRequest();
+    xhr.open(obj.type || 'get', obj.url);
+    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+    xhr.send(obj.data);
+
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState == 4 && xhr.status == 200) {
+            obj.success && obj.success(xhr.responseText);
+        } else {
+            obj.error && obj.error();
+        }
+    };
+}
+
+module.exports = ajax;
 
 /***/ }),
 
@@ -11406,7 +11511,27 @@ var styleString = '\
 .clvpf-dialog .clvpf-dialog_footer .clvpf-btn_next{float:right;}\
 ';
 
-module.exports = styleString;
+var dialogStyle = '\
+.clvpf-fb_cover{position:fixed; left:0; right:0; top:0; bottom:0; background:rgba(255,255,255,0.1); z-index:19950123;}\
+.clvpf-fb-dialog{position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); width:400px; background-color:white; border-radius:4px; padding:20px; box-shadow:0 0 10px rgba(0,0,0,0.1);}\
+\
+.fb-dialog_title{font-size:18px; margin:0 0 1em 0;}\
+.fb-dialog_body{}\
+.fb-dialog_item{margin-bottom:20px;}\
+.fb-dialog_item label{font-size:14px; width:80px; display:inline-block; float:left;}\
+.fb-dialog_item .dialog_item_content{margin-left:80px;}\
+.clvpf-fb-dialog .btn{background-color:white; border:1px solid #eee; padding:.5em 1em; border-radius:4px; cursor:pointer;}\
+\
+.btn-upload_input{display:none;}\
+.form-textarea{width:100%; height:6em; resize:none; border-radius:4px; border-color:#eee;}\
+\
+.fb-dialog_footer{text-align:center;}\
+\
+.preview-con{margin-top: 5px; max-width:100%; border: 1px dashed #eee; display:none;}\
+.preview-con img{width:100%;}\
+';
+
+module.exports = styleString + dialogStyle;
 
 /***/ }),
 

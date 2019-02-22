@@ -7,16 +7,22 @@ function ajax(obj) {
     !obj.url && console.error('必须设置url属性');
 
     var xhr = new XMLHttpRequest();
+    xhr.timeout = obj.timeout || 30000;
     xhr.open(obj.type || 'get', obj.url);
-    xhr.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+    xhr.setRequestHeader("Content-type","application/x-www-form-urlencoded;charset=utf-8'");
 
     xhr.send(obj.data);
 
     xhr.onreadystatechange = function () {
-        if (xhr.readyState==4&&xhr.status==200) {
-            obj.success && obj.success(xhr.responseText);
+        if (xhr.readyState==4) {
+            if(xhr.status==200) {
+                obj.success && obj.success(xhr.responseText);
+            } else {
+                obj.error && obj.error(xhr);
+            }
+            obj.complete && obj.complete(xhr);
         } else {
-            obj.error && obj.error();
+
         }
     }
 }

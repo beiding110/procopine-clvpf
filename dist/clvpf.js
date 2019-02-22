@@ -11212,33 +11212,61 @@ Doalog.prototype = {
         document.body.appendChild(creatDom.call(this));
     },
     submit: function submit() {
-        // var json = {
-        //     text: this.$textarea.value
-        // };
-        //
-        // console.log(json);
+        var _this = this;
 
-        var formdata = new FormData();
-        formdata.append("text", this.$textarea.value);
-        formdata.append("file", this.$file.files[0]);
+        var text = this.$textarea.value;
+        if (!text) {
+            this.$submit.innerText = '请输入“意见”';
+            this.$submit.disabled = true;
+            this.$submit.style.color = 'red';
+
+            setTimeout(function () {
+                _this.$submit.innerText = '提交';
+                _this.$submit.disabled = false;
+                _this.$submit.style.color = '';
+            }, 2000);
+
+            return;
+        }
+        var file = this.$file.files[0],
+            formdata = new FormData();
+
+        formdata.append("text", text);
+        file && formdata.append("file", file);
         console.log(formdata.get("file"));
+
+        this.$submit.innerText = '提交中...';
+        this.$submit.disabled = true;
 
         ajax({
             type: 'post',
             url: this.$url,
             data: formdata,
-            success: function success(res) {},
-            error: function error() {}
+            success: function success(res) {
+                _this.close();
+            },
+            error: function error(xhr) {},
+            complete: function complete(xhr) {}
         });
 
-        this.close();
+        // this.close();
     },
     show: function show() {
         this.$dialog.style.display = 'block';
+        this.$dialog.style.opacity = 1;
     },
     close: function close() {
+        var _this2 = this;
+
         this.clear();
-        this.$dialog.style.display = 'none';
+
+        this.$submit.innerText = '提交';
+        this.$submit.disabled = false;
+
+        this.$dialog.style.opacity = 0;
+        setTimeout(function () {
+            _this2.$dialog.style.display = 'none';
+        }, 300);
     },
     clear: function clear() {
         this.$textarea.value = '';
@@ -11254,7 +11282,7 @@ Doalog.prototype = {
 };
 
 function creatDom() {
-    var _this = this;
+    var _this3 = this;
 
     var cover = document.createElement('div');
     cover.classList.add('clvpf-fb_cover');
@@ -11310,7 +11338,7 @@ function creatDom() {
     input_file.type = 'file';
     input_file.accept = 'image/*';
     input_file.addEventListener('change', function () {
-        _this.updatePreview();
+        _this3.updatePreview();
     });
     this.$file = input_file;
 
@@ -11344,7 +11372,7 @@ function creatDom() {
     this.$submit = btn_submit;
 
     btn_submit.addEventListener('click', function () {
-        _this.submit();
+        _this3.submit();
     });
 
     footer.appendChild(btn_submit);
@@ -11356,9 +11384,9 @@ function creatDom() {
     cover.appendChild(dialog);
     cover.addEventListener('click', function (e) {
         e.stopPropagation();
-        e.preventDefault();
+        // e.preventDefault();
 
-        e.target === cover && _this.close();
+        e.target === cover && _this3.close();
     });
     this.$dialog = cover;
 
@@ -11422,17 +11450,21 @@ function ajax(obj) {
     !obj.url && console.error('必须设置url属性');
 
     var xhr = new XMLHttpRequest();
+    xhr.timeout = obj.timeout || 30000;
     xhr.open(obj.type || 'get', obj.url);
-    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded;charset=utf-8'");
 
     xhr.send(obj.data);
 
     xhr.onreadystatechange = function () {
-        if (xhr.readyState == 4 && xhr.status == 200) {
-            obj.success && obj.success(xhr.responseText);
-        } else {
-            obj.error && obj.error();
-        }
+        if (xhr.readyState == 4) {
+            if (xhr.status == 200) {
+                obj.success && obj.success(xhr.responseText);
+            } else {
+                obj.error && obj.error(xhr);
+            }
+            obj.complete && obj.complete(xhr);
+        } else {}
     };
 }
 
@@ -11512,15 +11544,15 @@ var styleString = '\
 ';
 
 var dialogStyle = '\
-.clvpf-fb_cover{position:fixed; left:0; right:0; top:0; bottom:0; background:rgba(255,255,255,0.1); z-index:19950123;}\
-.clvpf-fb-dialog{position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); width:400px; background-color:white; border-radius:4px; padding:20px; box-shadow:0 0 10px rgba(0,0,0,0.1);}\
+.clvpf-fb_cover{position:fixed; left:0; right:0; top:0; bottom:0; background:rgba(255,255,255,0.1); z-index:19950123; transition:all .3s;}\
+.clvpf-fb-dialog{position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); width:400px; background-color:white; border-radius:4px; padding:20px; box-shadow:0 0 10px rgba(0,0,0,0.1); transition:all .3s;}\
 \
 .fb-dialog_title{font-size:18px; margin:0 0 1em 0;}\
 .fb-dialog_body{}\
 .fb-dialog_item{margin-bottom:20px;}\
 .fb-dialog_item label{font-size:14px; width:80px; display:inline-block; float:left;}\
 .fb-dialog_item .dialog_item_content{margin-left:80px;}\
-.clvpf-fb-dialog .btn{background-color:white; border:1px solid #eee; padding:.5em 1em; border-radius:4px; cursor:pointer;}\
+.clvpf-fb-dialog .btn{background-color:white; border:1px solid #eee; padding:.5em 1em; border-radius:4px; cursor:pointer; transition:all .3s;}\
 \
 .btn-upload_input{display:none;}\
 .form-textarea{width:100%; height:6em; resize:none; border-radius:4px; border-color:#eee;}\

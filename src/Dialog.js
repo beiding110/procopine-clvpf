@@ -17,37 +17,61 @@ Doalog.prototype = {
         document.body.appendChild(creatDom.call(this))
     },
     submit() {
-        // var json = {
-        //     text: this.$textarea.value
-        // };
-        //
-        // console.log(json);
+        var text = this.$textarea.value;
+        if(!text) {
+            this.$submit.innerText = '请输入“意见”';
+            this.$submit.disabled = true;
+            this.$submit.style.color = 'red';
 
-        var formdata=new FormData();
-        formdata.append("text", this.$textarea.value);
-        formdata.append("file", this.$file.files[0]);
-        console.log(formdata.get("file"))
+            setTimeout(() => {
+                this.$submit.innerText = '提交';
+                this.$submit.disabled = false;
+                this.$submit.style.color = '';
+            }, 2000);
+
+            return;
+        }
+        var file = this.$file.files[0],
+            formdata=new FormData();
+
+        formdata.append("text", text);
+        file && formdata.append("file", file);
+        console.log(formdata.get("file"));
+
+        this.$submit.innerText = '提交中...';
+        this.$submit.disabled = true;
 
         ajax({
             type: 'post',
             url: this.$url,
             data: formdata,
-            success(res) {
+            success: (res) => {
+                this.close();
+            },
+            error: (xhr) => {
 
             },
-            error() {
+            complete: (xhr) => {
 
             }
-        })
+        });
 
-        this.close();
+        // this.close();
     },
     show() {
         this.$dialog.style.display = 'block';
+        this.$dialog.style.opacity = 1;
     },
     close() {
         this.clear();
-        this.$dialog.style.display = 'none';
+
+        this.$submit.innerText = '提交';
+        this.$submit.disabled = false;
+
+        this.$dialog.style.opacity = 0;
+        setTimeout(() => {
+            this.$dialog.style.display = 'none';
+        }, 300);
     },
     clear() {
         this.$textarea.value = '';
@@ -163,7 +187,7 @@ function creatDom() {
     cover.appendChild(dialog);
     cover.addEventListener('click', (e) => {
         e.stopPropagation();
-        e.preventDefault();
+        // e.preventDefault();
 
         (e.target === cover) && this.close();
     });

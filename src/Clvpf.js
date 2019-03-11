@@ -1,5 +1,6 @@
 var animateStr = require('./lib/animateStr')
 var clvpfStyle = require('./lib/clvpf-style')
+const creatStyle = require('./lib/creat-style.js')
 
 function Clvpf(obj) {
     this.init(obj);
@@ -8,7 +9,7 @@ function Clvpf(obj) {
 Clvpf.prototype = {
     init(obj) {
         this.$options = obj;
-        this.$el = document.querySelector(obj.el);
+        this.$el = getEl.call(this, obj.el);
         this.$el.style.position = 'relative';
         this.$activeIndex = 0;
 
@@ -49,7 +50,6 @@ Clvpf.prototype = {
         this.$dom = _dom;
 
         this.next();
-        console.log(_dom)
     },
     next() {
         //进入下一个提示
@@ -128,14 +128,6 @@ Clvpf.prototype = {
     }
 };
 
-function creatStyle(styleStr) {
-    //创建一个包含参数内容的style标签；
-    var styleNode = document.createElement('style');
-    styleNode.innerHTML = styleStr;
-
-    document.head.appendChild(styleNode);
-}
-
 function getOffset(node) {
     //获取元素相对于$el的左边距、上边距
     var left = node.offsetLeft,
@@ -192,6 +184,16 @@ function creatDialog(node, noNext) {
     }
 
     return dialog;
+}
+
+function getEl(selector) {
+    return document.querySelector(selector);
+    // if(/#/.test(selector))
+    //     return document.getElementById(selector.replace(/#/g, ''));
+    // else if(/./.test(selector))
+    //     return document.getElementsByClassName(selector.replace(/./g, ''));
+    // else
+    //     return document.getElementsByTagName(selector);
 }
 
 module.exports = Clvpf

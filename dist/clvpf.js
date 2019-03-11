@@ -10987,6 +10987,7 @@ module.exports = function (module) {
 
 var animateStr = __webpack_require__(/*! ./lib/animateStr */ "./src/lib/animateStr.js");
 var clvpfStyle = __webpack_require__(/*! ./lib/clvpf-style */ "./src/lib/clvpf-style.js");
+var creatStyle = __webpack_require__(/*! ./lib/creat-style.js */ "./src/lib/creat-style.js");
 
 function Clvpf(obj) {
     this.init(obj);
@@ -10995,7 +10996,7 @@ function Clvpf(obj) {
 Clvpf.prototype = {
     init: function init(obj) {
         this.$options = obj;
-        this.$el = document.querySelector(obj.el);
+        this.$el = getEl.call(this, obj.el);
         this.$el.style.position = 'relative';
         this.$activeIndex = 0;
 
@@ -11038,7 +11039,6 @@ Clvpf.prototype = {
         this.$dom = _dom;
 
         this.next();
-        console.log(_dom);
     },
     next: function next() {
         //进入下一个提示
@@ -11114,14 +11114,6 @@ Clvpf.prototype = {
     }
 };
 
-function creatStyle(styleStr) {
-    //创建一个包含参数内容的style标签；
-    var styleNode = document.createElement('style');
-    styleNode.innerHTML = styleStr;
-
-    document.head.appendChild(styleNode);
-}
-
 function getOffset(node) {
     //获取元素相对于$el的左边距、上边距
     var left = node.offsetLeft,
@@ -11182,6 +11174,16 @@ function creatDialog(node, noNext) {
     return dialog;
 }
 
+function getEl(selector) {
+    return document.querySelector(selector);
+    // if(/#/.test(selector))
+    //     return document.getElementById(selector.replace(/#/g, ''));
+    // else if(/./.test(selector))
+    //     return document.getElementsByClassName(selector.replace(/./g, ''));
+    // else
+    //     return document.getElementsByTagName(selector);
+}
+
 module.exports = Clvpf;
 
 /***/ }),
@@ -11194,6 +11196,8 @@ module.exports = Clvpf;
 /***/ (function(module, exports, __webpack_require__) {
 
 var ajax = __webpack_require__(/*! ./lib/ajax.js */ "./src/lib/ajax.js");
+var creatStyle = __webpack_require__(/*! ./lib/creat-style.js */ "./src/lib/creat-style.js");
+var styleStr = __webpack_require__(/*! ./lib/dialog-style */ "./src/lib/dialog-style.js");
 
 function Doalog(obj) {
     this.init(obj);
@@ -11210,15 +11214,32 @@ Doalog.prototype = {
         this.$url = obj.url;
 
         document.body.appendChild(creatDom.call(this));
+        creatStyle(styleStr);
     },
     submit: function submit() {
         var _this = this;
 
         var text = this.$textarea.value;
         if (!text) {
+            var ta_input = function ta_input() {
+                var t_a_val = this.$textarea.value,
+                    form_item = this.$textarea.parentNode.parentNode;
+                if (t_a_val && t_a_val.replace(/^\s+|\s+$/g, "")) {
+                    form_item.classList.remove('error');
+                } else {
+                    form_item.classList.add('error');
+                }
+                // this.$textarea.removeEventListener('input', ta_input);
+            };
+
             this.$submit.innerText = '请输入“意见”';
             this.$submit.disabled = true;
             this.$submit.style.color = 'red';
+
+            this.$textarea.parentNode.parentNode.classList.add('error');
+            ;
+            this.$textarea.removeEventListener('input', ta_input);
+            this.$textarea.addEventListener('input', ta_input.bind(this));
 
             setTimeout(function () {
                 _this.$submit.innerText = '提交';
@@ -11294,6 +11315,13 @@ function creatDom() {
     var title = document.createElement('h3');
     title.classList.add('fb-dialog_title');
     title.innerText = '反馈意见';
+
+    var closeBtn = document.createElement('span');
+    closeBtn.classList.add('fb-dialog_close');
+    title.appendChild(closeBtn);
+    closeBtn.addEventListener('click', function () {
+        _this3.close();
+    });
 
     // body
     var body = document.createElement('div');
@@ -11426,9 +11454,34 @@ var _tag = document.querySelector('[ref=clvps]');
 var $init_url = _tag.getAttribute('init'),
     $submit_url = _tag.getAttribute('submit');
 
+window.$clvpf = new Clvpf({
+    el: 'body',
+    target: [{
+        el: '#tip1',
+        text: '点击“立即创建”按钮\n创建信息',
+        pos: 'right'
+    }, {
+        el: '#tip2',
+        text: '填写活动名称',
+        ani: 'shadow'
+    }, {
+        el: '#tip3',
+        text: '点击取消则会取消提交表单',
+        pos: 'left',
+        ani: 'shadow'
+    }, {
+        el: '#tip4',
+        text: '活动形式为非必填内容',
+        pos: 'top',
+        ani: 'shadow'
+    }]
+});
 var _dialog = new Dialog({
     url: $submit_url
 });
+window.$clvpf._dialog = _dialog;
+window.$clvpf.dialogShow = _dialog.show.bind(_dialog);
+window.$clvpf.dialogHide = _dialog.show.bind(_dialog);
 
 module.exports = Clvpf;
 
@@ -11543,19 +11596,58 @@ var styleString = '\
 .clvpf-dialog .clvpf-dialog_footer .clvpf-btn_next{float:right;}\
 ';
 
+module.exports = styleString;
+
+/***/ }),
+
+/***/ "./src/lib/creat-style.js":
+/*!********************************!*\
+  !*** ./src/lib/creat-style.js ***!
+  \********************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = function creatStyle(styleStr) {
+    //创建一个包含参数内容的style标签；
+    var styleNode = document.createElement('style');
+    styleNode.innerHTML = styleStr;
+
+    document.head.appendChild(styleNode);
+};
+
+/***/ }),
+
+/***/ "./src/lib/dialog-style.js":
+/*!*********************************!*\
+  !*** ./src/lib/dialog-style.js ***!
+  \*********************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
 var dialogStyle = '\
+.clvpf-fb-dialog *{transition:all .3s;}\
+\
 .clvpf-fb_cover{position:fixed; left:0; right:0; top:0; bottom:0; background:rgba(255,255,255,0.1); z-index:19950123; transition:all .3s;}\
 .clvpf-fb-dialog{position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); width:400px; background-color:white; border-radius:4px; padding:20px; box-shadow:0 0 10px rgba(0,0,0,0.1); transition:all .3s;}\
 \
 .fb-dialog_title{font-size:18px; margin:0 0 1em 0;}\
+.fb-dialog_close{display:inline-block; float:right; width:1em; height:1em; cursor:pointer; position:relative;}\
+.fb-dialog_close::before, .fb-dialog_close::after{content:" "; position:absolute; width:100%; height:1px; background:#ddd; left:50%; top:50%;}\
+.fb-dialog_close::before{transform:translate(-50%,-50%) rotate(-45deg);}\
+.fb-dialog_close::after{transform:translate(-50%,-50%) rotate(45deg);}\
+.fb-dialog_close:hover::before, .fb-dialog_close:hover::after{background-color:red;}\
+\
 .fb-dialog_body{}\
 .fb-dialog_item{margin-bottom:20px;}\
 .fb-dialog_item label{font-size:14px; width:80px; display:inline-block; float:left;}\
 .fb-dialog_item .dialog_item_content{margin-left:80px;}\
 .clvpf-fb-dialog .btn{background-color:white; border:1px solid #eee; padding:.5em 1em; border-radius:4px; cursor:pointer; transition:all .3s;}\
+.btn.btn-submit:hover{background:#D9ECFF; color:#409EFF; border-color:#409EFF;}\
 \
 .btn-upload_input{display:none;}\
 .form-textarea{width:100%; height:6em; resize:none; border-radius:4px; border-color:#eee;}\
+.fb-dialog_item.error label{color:red;}\
+.fb-dialog_item.error .dialog_item_content>*{border-color:red;}\
 \
 .fb-dialog_footer{text-align:center;}\
 \
@@ -11563,7 +11655,7 @@ var dialogStyle = '\
 .preview-con img{width:100%;}\
 ';
 
-module.exports = styleString + dialogStyle;
+module.exports = dialogStyle;
 
 /***/ }),
 

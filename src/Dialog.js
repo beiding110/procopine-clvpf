@@ -1,4 +1,6 @@
 const ajax = require('./lib/ajax.js')
+const creatStyle = require('./lib/creat-style.js')
+var styleStr = require('./lib/dialog-style')
 
 function Doalog(obj) {
     this.init(obj);
@@ -14,7 +16,8 @@ Doalog.prototype = {
 
         this.$url = obj.url;
 
-        document.body.appendChild(creatDom.call(this))
+        document.body.appendChild(creatDom.call(this));
+        creatStyle(styleStr);
     },
     submit() {
         var text = this.$textarea.value;
@@ -22,6 +25,20 @@ Doalog.prototype = {
             this.$submit.innerText = '请输入“意见”';
             this.$submit.disabled = true;
             this.$submit.style.color = 'red';
+
+            this.$textarea.parentNode.parentNode.classList.add('error');
+            function ta_input() {
+                var t_a_val = this.$textarea.value,
+                    form_item = this.$textarea.parentNode.parentNode;
+                if(t_a_val && t_a_val.replace(/^\s+|\s+$/g,"")) {
+                    form_item.classList.remove('error');
+                } else {
+                    form_item.classList.add('error');
+                }
+                // this.$textarea.removeEventListener('input', ta_input);
+            };
+            this.$textarea.removeEventListener('input', ta_input);
+            this.$textarea.addEventListener('input', ta_input.bind(this));
 
             setTimeout(() => {
                 this.$submit.innerText = '提交';
@@ -97,6 +114,13 @@ function creatDom() {
     var title = document.createElement('h3');
     title.classList.add('fb-dialog_title');
     title.innerText = '反馈意见';
+
+    var closeBtn = document.createElement('span');
+    closeBtn.classList.add('fb-dialog_close');
+    title.appendChild(closeBtn);
+    closeBtn.addEventListener('click', () => {
+        this.close();
+    })
 
 // body
     var body = document.createElement('div');

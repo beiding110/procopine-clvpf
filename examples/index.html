@@ -60,7 +60,7 @@
 		</el-form>
 
 		<el-button type="success" @click="showClvpf">显示提示</el-button>
-		<el-button type="danger" >反馈弹窗</el-button>
+		<el-button type="danger" @click="clvpf.dialogShow">反馈弹窗</el-button>
 	</div>
 
 	<!-- <div class="clvpf-fb-dialog">
@@ -96,6 +96,7 @@
 	ref="clvps"
 	init="/api/init"
 	submit="/api/submit"></script>
+
     <script type="text/javascript">
         console.log(Clvpf)
 		new Vue({
@@ -113,7 +114,7 @@
 						desc: ''
 					},
 
-					clvpf: null
+					clvpf: {}
 				}
 			},
 			methods: {
@@ -127,33 +128,7 @@
 			mounted: function() {
 				// console.log(this.$refs);
 
-				this.clvpf = new Clvpf({
-					el: '#main_con',
-					target: [
-						{
-							el: '#tip1',
-							text: '点击“立即创建”按钮\n创建信息',
-							pos: 'right'
-						},
-						{
-							el: '#tip2',
-							text: '填写活动名称',
-							ani: 'shadow'
-						},
-						{
-							el: '#tip3',
-							text: '点击取消则会取消提交表单',
-							pos: 'left',
-							ani: 'shadow'
-						},
-						{
-							el: '#tip4',
-							text: '活动形式为非必填内容',
-							pos: 'top',
-							ani: 'shadow'
-						},
-					]
-				})
+				this.clvpf = $clvpf;
 
 				// setTimeout(() => {
 				// 	clvpf.next()

@@ -1,7 +1,7 @@
 var dialogStyle = '\
 .clvpf-fb-dialog *{transition:all .3s;}\
 \
-.clvpf-fb_cover{position:fixed; left:0; right:0; top:0; bottom:0; background:rgba(255,255,255,0.1); z-index:19950123; transition:all .3s;}\
+.clvpf-fb_cover{position:fixed; left:0; right:0; top:0; bottom:0; background:rgba(255,255,255,0.1); z-index:19950123; transition:all .3s; display:none; opacity:0;}\
 .clvpf-fb-dialog{position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); width:400px; background-color:white; border-radius:4px; padding:20px; box-shadow:0 0 10px rgba(0,0,0,0.1); transition:all .3s;}\
 \
 .fb-dialog_title{font-size:18px; margin:0 0 1em 0;}\

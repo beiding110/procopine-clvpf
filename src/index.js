@@ -24,7 +24,11 @@ ajax({
         $clvpf.mount(res)
     },
     error: (xhr) => {
+<<<<<<< HEAD
         console.error('初始化提示功能失败，请检查接口是否可用', xhr);
+=======
+
+>>>>>>> 54089eeb2f8f92ba127c6119fcacabdb6e0da744
     },
     complete: (xhr) => {
 

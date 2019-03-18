@@ -77,7 +77,9 @@ Doalog.prototype = {
     },
     show() {
         this.$dialog.style.display = 'block';
-        this.$dialog.style.opacity = 1;
+        setTimeout(() => {
+            this.$dialog.style.opacity = 1;
+        }, 0);
     },
     close() {
         this.clear();

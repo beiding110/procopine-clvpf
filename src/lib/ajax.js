@@ -16,7 +16,9 @@ function ajax(obj) {
     xhr.onreadystatechange = function () {
         if (xhr.readyState==4) {
             if(xhr.status==200) {
-                obj.success && obj.success(xhr.responseText);
+                var res = xhr.responseText;
+                res = (typeof(res) === 'string' && /{|}/.test(res)) ? JSON.parse(res) : res;
+                obj.success && obj.success(res);
             } else {
                 obj.error && obj.error(xhr);
             }

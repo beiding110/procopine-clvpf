@@ -8,13 +8,18 @@ function Clvpf(obj) {
 
 Clvpf.prototype = {
     init(obj) {
-        this.$options = obj;
-        this.$el = getEl.call(this, obj.el);
-        this.$el.style.position = 'relative';
+        if(obj) {
+            this.mount(obj)
+        };
         this.$activeIndex = 0;
 
         creatStyle(animateStr);
         creatStyle(clvpfStyle);
+    },
+    mount(obj) {
+        this.$options = obj;
+        this.$el = getEl.call(this, obj.el);
+        this.$el.style.position = 'relative';
     },
     show(index) {
         //打开提示

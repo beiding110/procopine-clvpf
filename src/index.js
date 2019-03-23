@@ -3,15 +3,35 @@ var Dialog = require('./Dialog');
 var PopBtn = require('./PopBtn');
 var ajax = require('./lib/ajax.js')
 
-var _tag = document.querySelector('[ref=clvps]');
+var _tag,
+    _tag_maybe
+
+//获取类标签；
+if(_tag_maybe = document.querySelector('[ref=clvps]')) {
+    _tag = _tag_maybe;
+} else {
+    var scripts = document.querySelectorAll('script');
+    scripts.forEach(function(item) {
+        var src = item.getAttribute('src');
+        if(/clvpf.js|clvpf.min.js/.test(src)) {
+            _tag = item;
+        }
+    })
+};
+
+//判断是否成功获取到类标签
+if(!_tag) {
+    console.error('未获取到clvpf的script标签');
+};
+
 var $init_url = _tag.getAttribute('init'),
     $submit_url = _tag.getAttribute('submit'),
     $window_location = {};
-    Object.keys(window.location).forEach((key) => {
-        if(typeof(window.location[key]) === 'string') {
-            $window_location[key] = window.location[key];
-        }
-    });
+Object.keys(window.location).forEach((key) => {
+    if(typeof(window.location[key]) === 'string') {
+        $window_location[key] = window.location[key];
+    }
+});
 
 //创建主实例
 window.$clvpf = new Clvpf();
@@ -24,11 +44,7 @@ ajax({
         $clvpf.mount(res)
     },
     error: (xhr) => {
-<<<<<<< HEAD
         console.error('初始化提示功能失败，请检查接口是否可用', xhr);
-=======
-
->>>>>>> 54089eeb2f8f92ba127c6119fcacabdb6e0da744
     },
     complete: (xhr) => {
 

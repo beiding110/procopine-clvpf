@@ -10978,14 +10978,883 @@ module.exports = function (module) {
 
 /***/ }),
 
+/***/ "./src/Clvpf.js":
+/*!**********************!*\
+  !*** ./src/Clvpf.js ***!
+  \**********************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var animateStr = __webpack_require__(/*! ./lib/animateStr */ "./src/lib/animateStr.js");
+var clvpfStyle = __webpack_require__(/*! ./lib/clvpf-style */ "./src/lib/clvpf-style.js");
+var creatStyle = __webpack_require__(/*! ./lib/creat-style.js */ "./src/lib/creat-style.js");
+
+function Clvpf(obj) {
+    this.init(obj);
+};
+
+Clvpf.prototype = {
+    init: function init(obj) {
+        if (obj) {
+            this.mount(obj);
+        };
+        this.$activeIndex = 0;
+
+        creatStyle(animateStr);
+        creatStyle(clvpfStyle);
+    },
+    mount: function mount(obj) {
+        this.$options = obj;
+        this.$el = getEl.call(this, obj.el);
+        this.$el.style.position = 'relative';
+    },
+    show: function show(index) {
+        var _this = this;
+
+        //打开提示
+        this.close();
+
+        this.$activeIndex = index || 0;
+        var doms = this.$options.target,
+            _dom = [];
+
+        doms.forEach(function (item) {
+            var dom = document.querySelector(item.el),
+                animate = item.ani || 'shake',
+                domOffset = getOffset.call(_this, dom);
+
+            var left = domOffset.left,
+                top = domOffset.top;
+
+            if (dom) {
+                _dom.push({
+                    dom: dom,
+                    animate: animate,
+                    class: 'clvpf-animate_' + animate,
+                    left: left,
+                    top: top,
+                    width: dom.offsetWidth,
+                    height: dom.offsetHeight,
+                    text: item.text,
+                    pos: item.pos || 'bottom'
+                });
+            }
+        });
+
+        this.$dom = _dom;
+
+        this.next();
+    },
+    next: function next() {
+        //进入下一个提示
+        this.$activeIndex > 0 && this.close();
+
+        var current = this.$dom[this.$activeIndex];
+
+        if (current) {
+            current.dom.classList.add(current.class);
+
+            var dialog = creatDialog.call(this, current, this.$dom.length === this.$activeIndex + 1);
+            this.$el.appendChild(dialog);
+            this.$dialog = dialog;
+
+            var DIALOG_HALF_WIDTH = dialog.offsetWidth / 2,
+                //弹框半宽度
+            DIALOG_HALF_HEIGHT = dialog.offsetHeight / 2,
+                //弹框半高度
+            VIEW_WIDTH = document.body.offsetWidth;
+
+            var CURRENT_WIDTH_LEFT_RATIO = {
+                left: 0,
+                right: 1,
+                top: 0.5,
+                bottom: 0.5
+            },
+                DIALOG_HALF_WIDTH_LEFT_RATIO = {
+                left: -2,
+                right: 0,
+                top: -1,
+                bottom: -1
+            };
+            var EL_POS_LEFT = current.width * CURRENT_WIDTH_LEFT_RATIO[current.pos];
+            dialog.style.left = current.left + EL_POS_LEFT + DIALOG_HALF_WIDTH * DIALOG_HALF_WIDTH_LEFT_RATIO[current.pos] + 'px';
+
+            var CURRENT_HEIGHT_TOP_RATIO = {
+                left: 0.5,
+                right: 0.5,
+                top: 0,
+                bottom: 1
+            },
+                DIALOG_HALF_HEIGHT_TOP_RATIO = {
+                left: -1,
+                right: -1,
+                top: -2,
+                bottom: 0
+            };
+            dialog.style.top = current.top + current.height * CURRENT_HEIGHT_TOP_RATIO[current.pos] + DIALOG_HALF_HEIGHT * DIALOG_HALF_HEIGHT_TOP_RATIO[current.pos] + 8 + 'px';
+
+            //位置控制
+            // if(DIALOG_HALF_WIDTH > EL_POS_LEFT) {
+            //     dialog.style.left = DIALOG_HALF_WIDTH + 'px';
+            // } else if (VIEW_WIDTH - DIALOG_HALF_WIDTH < EL_POS_LEFT) {
+            //     dialog.style.left = 'auto';
+            //     dialog.style.right = -DIALOG_HALF_WIDTH + 'px';
+            // }
+
+            this.$activeIndex++;
+        }
+        return;
+    },
+    close: function close() {
+        //关闭提示
+        if (this.$dialog) {
+            //清除上一次的弹框
+            this.$el.removeChild(this.$dialog);
+            this.$dialog = null;
+
+            //移除上一个重点组件的激活状态
+            var last = this.$dom[this.$activeIndex - 1];
+            last && last.dom.classList.remove(last.class);
+        };
+    }
+};
+
+function getOffset(node) {
+    //获取元素相对于$el的左边距、上边距
+    var left = node.offsetLeft,
+        top = node.offsetTop,
+        pOffset = {
+        left: 0,
+        top: 0
+    };
+    if (node.offsetParent && node.offsetParent !== this.$el) {
+        pOffset = getOffset.call(this, node.offsetParent);
+    }
+
+    return {
+        left: left + pOffset.left,
+        top: top + pOffset.top
+    };
+}
+
+function creatDialog(node, noNext) {
+    var _this2 = this;
+
+    //创建一个包含指定内容的dialog；
+    var dialog = document.createElement('div');
+    dialog.classList.add('clvpf-dialog');
+    dialog.classList.add('clvpf-dialog_' + node.pos);
+
+    var dialogBody = document.createElement('div');
+    dialogBody.classList.add('clvpf-dialog_body');
+    dialogBody.innerText = node.text;
+
+    var dialogFooter = document.createElement('div');
+    dialogFooter.classList.add('clvpf-dialog_footer');
+
+    var btnClose = document.createElement('span');
+    btnClose.classList.add('clvpf-btn_close');
+    btnClose.innerText = '关闭';
+
+    btnClose.addEventListener('click', function () {
+        _this2.close();
+    });
+
+    dialog.appendChild(dialogBody);
+    dialogFooter.appendChild(btnClose);
+    dialog.appendChild(dialogFooter);
+
+    if (!noNext) {
+        var btnNext = document.createElement('span');
+        btnNext.classList.add('clvpf-btn_next');
+        btnNext.innerText = '下一个';
+
+        btnNext.addEventListener('click', function () {
+            _this2.next();
+        });
+
+        dialogFooter.appendChild(btnNext);
+    }
+
+    return dialog;
+}
+
+function getEl(selector) {
+    return document.querySelector(selector);
+    // if(/#/.test(selector))
+    //     return document.getElementById(selector.replace(/#/g, ''));
+    // else if(/./.test(selector))
+    //     return document.getElementsByClassName(selector.replace(/./g, ''));
+    // else
+    //     return document.getElementsByTagName(selector);
+}
+
+module.exports = Clvpf;
+
+/***/ }),
+
+/***/ "./src/Dialog.js":
+/*!***********************!*\
+  !*** ./src/Dialog.js ***!
+  \***********************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var ajax = __webpack_require__(/*! ./lib/ajax.js */ "./src/lib/ajax.js");
+var creatStyle = __webpack_require__(/*! ./lib/creat-style.js */ "./src/lib/creat-style.js");
+var styleStr = __webpack_require__(/*! ./lib/dialog-style */ "./src/lib/dialog-style.js");
+
+function Doalog(obj) {
+    this.init(obj);
+}
+
+Doalog.prototype = {
+    init: function init(obj) {
+        this.$dialog = null;
+        this.$textarea = null;
+        this.$file_btn = null;
+        this.$file = null;
+        this.$submit = null;
+
+        this.$url = obj.url;
+
+        document.body.appendChild(creatDom.call(this));
+        creatStyle(styleStr);
+    },
+    submit: function submit() {
+        var _this = this;
+
+        var text = this.$textarea.value;
+        if (!text) {
+            var ta_input = function ta_input() {
+                var t_a_val = this.$textarea.value,
+                    form_item = this.$textarea.parentNode.parentNode;
+                if (t_a_val && t_a_val.replace(/^\s+|\s+$/g, "")) {
+                    form_item.classList.remove('error');
+                } else {
+                    form_item.classList.add('error');
+                }
+                // this.$textarea.removeEventListener('input', ta_input);
+            };
+
+            this.$submit.innerText = '请输入“意见”';
+            this.$submit.disabled = true;
+            this.$submit.style.color = 'red';
+
+            this.$textarea.parentNode.parentNode.classList.add('error');
+            ;
+            this.$textarea.removeEventListener('input', ta_input);
+            this.$textarea.addEventListener('input', ta_input.bind(this));
+
+            setTimeout(function () {
+                _this.$submit.innerText = '提交';
+                _this.$submit.disabled = false;
+                _this.$submit.style.color = '';
+            }, 2000);
+
+            return;
+        }
+        var file = this.$file.files[0],
+            formdata = new FormData();
+
+        formdata.append("text", text);
+        file && formdata.append("file", file);
+        console.log(formdata.get("file"));
+
+        this.$submit.innerText = '提交中...';
+        this.$submit.disabled = true;
+
+        ajax({
+            type: 'post',
+            url: this.$url,
+            data: formdata,
+            success: function success(res) {
+                _this.close();
+            },
+            error: function error(xhr) {},
+            complete: function complete(xhr) {}
+        });
+
+        // this.close();
+    },
+    show: function show() {
+        var _this2 = this;
+
+        this.$dialog.style.display = 'block';
+        setTimeout(function () {
+            _this2.$dialog.style.opacity = 1;
+        }, 0);
+    },
+    close: function close() {
+        var _this3 = this;
+
+        this.clear();
+
+        this.$submit.innerText = '提交';
+        this.$submit.disabled = false;
+
+        this.$dialog.style.opacity = 0;
+        setTimeout(function () {
+            _this3.$dialog.style.display = 'none';
+        }, 300);
+    },
+    clear: function clear() {
+        this.$textarea.value = '';
+        this.$file.value = '';
+        this.$preview.parentNode.style.display = 'none';
+        this.$preview.src = '';
+    },
+    updatePreview: function updatePreview() {
+        var src = getObjectURL(this.$file.files[0]);
+        this.$preview.src = src;
+        !!src && (this.$preview.parentNode.style.display = 'inline-block');
+    }
+};
+
+function creatDom() {
+    var _this4 = this;
+
+    var cover = document.createElement('div');
+    cover.classList.add('clvpf-fb_cover');
+
+    var dialog = document.createElement('div');
+    dialog.classList.add('clvpf-fb-dialog');
+
+    // title
+    var title = document.createElement('h3');
+    title.classList.add('fb-dialog_title');
+    title.innerText = '反馈意见';
+
+    var closeBtn = document.createElement('span');
+    closeBtn.classList.add('fb-dialog_close');
+    title.appendChild(closeBtn);
+    closeBtn.addEventListener('click', function () {
+        _this4.close();
+    });
+
+    // body
+    var body = document.createElement('div');
+    body.classList.add('fb-dialog_body');
+    //意见
+    var item_text = document.createElement('div');
+    item_text.classList.add('fb-dialog_item');
+
+    var label_text = document.createElement('label');
+    label_text.innerText = '意见';
+
+    var itemContent_text = document.createElement('div');
+    itemContent_text.classList.add('dialog_item_content');
+
+    var textarea = document.createElement('textarea');
+    textarea.classList.add('form-textarea');
+    this.$textarea = textarea;
+
+    itemContent_text.appendChild(textarea);
+    item_text.appendChild(label_text);
+    item_text.appendChild(itemContent_text);
+
+    //上传
+    var item_upoload = document.createElement('div');
+    item_upoload.classList.add('fb-dialog_item');
+
+    var label_upoload = document.createElement('label');
+    label_upoload.innerText = '图片附件';
+
+    var itemContent_upoload = document.createElement('div');
+    itemContent_upoload.classList.add('dialog_item_content');
+
+    var file_btn_con = document.createElement('div');
+
+    var btn_upoload = document.createElement('button');
+    btn_upoload.classList.add('btn', 'btn-submit');
+    btn_upoload.innerText = '点击上传';
+    this.$file_btn = btn_upoload;
+
+    var input_file = document.createElement('input');
+    input_file.classList.add('btn', 'btn-upload_input');
+    input_file.type = 'file';
+    input_file.accept = 'image/*';
+    input_file.addEventListener('change', function () {
+        _this4.updatePreview();
+    });
+    this.$file = input_file;
+
+    btn_upoload.addEventListener('click', function () {
+        input_file.click();
+    });
+
+    var preivew_con = document.createElement('div');
+    preivew_con.classList.add('preview-con');
+    var img = document.createElement('img');
+    this.$preview = img;
+    preivew_con.appendChild(img);
+
+    file_btn_con.appendChild(btn_upoload);
+    file_btn_con.appendChild(input_file);
+    itemContent_upoload.appendChild(file_btn_con);
+    itemContent_upoload.appendChild(preivew_con);
+    item_upoload.appendChild(label_upoload);
+    item_upoload.appendChild(itemContent_upoload);
+
+    body.appendChild(item_text);
+    body.appendChild(item_upoload);
+
+    // footer
+    var footer = document.createElement('div');
+    footer.classList.add('fb-dialog_footer');
+
+    var btn_submit = document.createElement('button');
+    btn_submit.classList.add('btn', 'btn-submit');
+    btn_submit.innerText = '提交';
+    this.$submit = btn_submit;
+
+    btn_submit.addEventListener('click', function () {
+        _this4.submit();
+    });
+
+    footer.appendChild(btn_submit);
+
+    dialog.appendChild(title);
+    dialog.appendChild(body);
+    dialog.appendChild(footer);
+
+    cover.appendChild(dialog);
+    cover.addEventListener('click', function (e) {
+        e.stopPropagation();
+        // e.preventDefault();
+
+        e.target === cover && _this4.close();
+    });
+    this.$dialog = cover;
+
+    return cover;
+}
+
+function getObjectURL(file) {
+    var url = null;
+    if (window.createObjectURL != undefined) {
+        // basic
+        url = window.createObjectURL(file);
+    } else if (window.URL != undefined) {
+        // mozilla(firefox)
+        url = window.URL.createObjectURL(file);
+    } else if (window.webkitURL != undefined) {
+        // webkit or chrome
+        url = window.webkitURL.createObjectURL(file);
+    }
+    return url;
+}
+
+module.exports = Doalog;
+
+/***/ }),
+
+/***/ "./src/PopBtn.js":
+/*!***********************!*\
+  !*** ./src/PopBtn.js ***!
+  \***********************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var strStyle = __webpack_require__(/*! ./lib/popbtn-style.js */ "./src/lib/popbtn-style.js"),
+    creatStyle = __webpack_require__(/*! ./lib/creat-style.js */ "./src/lib/creat-style.js"),
+    iconHelp = __webpack_require__(/*! ./lib/icon-help.js */ "./src/lib/icon-help.js");
+
+function PopBtn(obj) {
+	this.init(obj);
+};
+
+PopBtn.prototype = {
+	init: function init(obj) {
+		creatStyle(strStyle);
+
+		this.$settings = obj;
+		this.$mainBtn = null;
+		this.$subBtn = [];
+		this.$activePos = [];
+
+		this.showState = false;
+
+		var that = this;
+
+		document.body.appendChild(this.creatDom(obj));
+		this.calcActivePos();
+
+		this.$mainBtn.addEventListener('click', function (e) {
+			if (that.showState) {
+				that.hide();
+				that.showState = false;
+			} else {
+				that.show();
+				that.showState = true;
+			}
+		});
+	},
+	creatDom: function creatDom(obj) {
+		var that = this;
+		var group = document.createElement('div');
+		group.classList.add('clv-btn_group');
+
+		var mainBtn = document.createElement('div');
+		mainBtn.classList.add('clv-ben', 'clv-ben_main');
+		this.$mainBtn = mainBtn;
+
+		var icon = document.createElement('img');
+		icon.setAttribute('src', iconHelp);
+		mainBtn.appendChild(icon);
+
+		if (Array.isArray(obj.btn) && obj.btn.length > 0) {
+			obj.btn.forEach(function (item) {
+				var btn = document.createElement('div');
+				btn.classList.add('clv-ben', 'clv-ben_sub', item.name);
+				btn.innerHTML = item.html;
+
+				Object.keys(item.on).forEach(function (eName) {
+					var cb = item.on[eName];
+					btn.addEventListener(eName, cb);
+				});
+
+				that.$subBtn.push(btn);
+				group.appendChild(btn);
+			});
+		};
+
+		group.appendChild(mainBtn);
+
+		return group;
+	},
+	calcActivePos: function calcActivePos() {
+		var subs = this.$subBtn,
+		    sub_l = subs.length,
+		    that = this;
+
+		var delta = Math.PI * .75 / (sub_l + 1);
+
+		subs.forEach(function (item, index) {
+			var width = item.clientWidth,
+			    obj = {};
+
+			obj.left = 2 * width * Math.sin(delta * (index + 1) + Math.PI);
+			obj.top = 2 * width * Math.cos(delta * (index + 1) + Math.PI);
+
+			that.$activePos.push(obj);
+		});
+	},
+	show: function show() {
+		var that = this;
+		this.$subBtn.forEach(function (item, index) {
+			item.style.top = that.$activePos[index].top + 'px';
+			item.style.left = that.$activePos[index].left + 'px';
+		});
+	},
+	hide: function hide() {
+		this.$subBtn.forEach(function (item, index) {
+			item.style.top = 0 + 'px';
+			item.style.left = 0 + 'px';
+		});
+	}
+};
+
+module.exports = PopBtn;
+
+/***/ }),
+
 /***/ "./src/index.js":
 /*!**********************!*\
   !*** ./src/index.js ***!
   \**********************/
 /*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var Clvpf = __webpack_require__(/*! ./Clvpf */ "./src/Clvpf.js");
+var Dialog = __webpack_require__(/*! ./Dialog */ "./src/Dialog.js");
+var PopBtn = __webpack_require__(/*! ./PopBtn */ "./src/PopBtn.js");
+var ajax = __webpack_require__(/*! ./lib/ajax.js */ "./src/lib/ajax.js");
+
+var _tag, _tag_maybe;
+
+//获取类标签；
+if (_tag_maybe = document.querySelector('[ref=clvps]')) {
+    _tag = _tag_maybe;
+} else {
+    var scripts = document.querySelectorAll('script');
+    scripts.forEach(function (item) {
+        var src = item.getAttribute('src');
+        if (/clvpf.js|clvpf.min.js/.test(src)) {
+            _tag = item;
+        }
+    });
+};
+
+//判断是否成功获取到类标签
+if (!_tag) {
+    console.error('未获取到clvpf的script标签');
+};
+
+var $init_url = _tag.getAttribute('init'),
+    $submit_url = _tag.getAttribute('submit'),
+    $window_location = {};
+Object.keys(window.location).forEach(function (key) {
+    if (typeof window.location[key] === 'string') {
+        $window_location[key] = window.location[key];
+    }
+});
+
+//创建主实例
+window.$clvpf = new Clvpf();
+
+ajax({
+    type: 'get',
+    url: $init_url,
+    data: $window_location,
+    success: function success(res) {
+        $clvpf.mount(res);
+    },
+    error: function error(xhr) {
+        console.error('初始化提示功能失败，请检查接口是否可用', xhr);
+    },
+    complete: function complete(xhr) {}
+});
+
+//创建submit实例
+var _dialog = new Dialog({
+    url: $submit_url
+});
+window.$clvpf._dialog = _dialog;
+window.$clvpf.dialogShow = _dialog.show.bind(_dialog);
+window.$clvpf.dialogHide = _dialog.show.bind(_dialog);
+
+//创建悬浮按钮实例
+new PopBtn({
+    btn: [{
+        name: 'tip',
+        html: '提示',
+        on: {
+            click: function click(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                $clvpf.show();
+            }
+        }
+    }, {
+        name: 'reward',
+        html: '反馈',
+        on: {
+            click: function click() {
+                _dialog.show();
+            }
+        }
+    }]
+});
+
+module.exports = Clvpf;
+
+/***/ }),
+
+/***/ "./src/lib/ajax.js":
+/*!*************************!*\
+  !*** ./src/lib/ajax.js ***!
+  \*************************/
+/*! no static exports found */
 /***/ (function(module, exports) {
 
-throw new Error("Module build failed (from ./node_modules/babel-loader/lib/index.js):\nSyntaxError: E:/GitHub/procupine-Clvpf/src/index.js: Unexpected token (27:0)\n\n\u001b[0m \u001b[90m 25 | \u001b[39m    }\u001b[33m,\u001b[39m\n \u001b[90m 26 | \u001b[39m    error\u001b[33m:\u001b[39m (xhr) \u001b[33m=>\u001b[39m {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 27 | \u001b[39m\u001b[33m<<\u001b[39m\u001b[33m<<\u001b[39m\u001b[33m<<\u001b[39m\u001b[33m<\u001b[39m \u001b[33mHEAD\u001b[39m\n \u001b[90m    | \u001b[39m\u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 28 | \u001b[39m        console\u001b[33m.\u001b[39merror(\u001b[32m'初始化提示功能失败，请检查接口是否可用'\u001b[39m\u001b[33m,\u001b[39m xhr)\u001b[33m;\u001b[39m\n \u001b[90m 29 | \u001b[39m\u001b[33m===\u001b[39m\u001b[33m===\u001b[39m\u001b[33m=\u001b[39m\n \u001b[90m 30 | \u001b[39m\u001b[0m\n");
+function ajax(obj) {
+    // var args = [];
+    // args.push.apply(args, arguments);
+    //
+    // console.log()
+
+    !obj.url && console.error('必须设置url属性');
+
+    var xhr = new XMLHttpRequest();
+    xhr.timeout = obj.timeout || 30000;
+    xhr.open(obj.type || 'get', obj.url);
+    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded;charset=utf-8'");
+
+    xhr.send(obj.data);
+
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState == 4) {
+            if (xhr.status == 200) {
+                var res = xhr.responseText;
+                res = typeof res === 'string' && /{|}/.test(res) ? JSON.parse(res) : res;
+                obj.success && obj.success(res);
+            } else {
+                obj.error && obj.error(xhr);
+            }
+            obj.complete && obj.complete(xhr);
+        } else {}
+    };
+}
+
+module.exports = ajax;
+
+/***/ }),
+
+/***/ "./src/lib/animateStr.js":
+/*!*******************************!*\
+  !*** ./src/lib/animateStr.js ***!
+  \*******************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+var SCALE_SIZE = 1.2,
+    //缩放大小
+ROTATE_RANGE = 10,
+    //抖动角度
+SHAKE_STEP = 10; //抖动次数
+var shake = '\
+.clvpf-animate_shake{\
+    animation:shake 2s infinite;\
+}\
+@keyframes shake{\
+    0% {transform:none;}\
+    30% {transform:scale(' + SCALE_SIZE + ');}\
+    34% {transform:scale(' + SCALE_SIZE + ') rotate(' + ROTATE_RANGE + 'deg);}\
+    38% {transform:scale(' + SCALE_SIZE + ') rotate(-' + (ROTATE_RANGE - ROTATE_RANGE / SHAKE_STEP) + 'deg);}\
+    42% {transform:scale(' + SCALE_SIZE + ') rotate(' + (ROTATE_RANGE - 2 * (ROTATE_RANGE / SHAKE_STEP)) + 'deg);}\
+    46% {transform:scale(' + SCALE_SIZE + ') rotate(-' + (ROTATE_RANGE - 3 * (ROTATE_RANGE / SHAKE_STEP)) + 'deg);}\
+    50% {transform:scale(' + SCALE_SIZE + ') rotate(' + (ROTATE_RANGE - 4 * (ROTATE_RANGE / SHAKE_STEP)) + 'deg);}\
+    54% {transform:scale(' + SCALE_SIZE + ') rotate(-' + (ROTATE_RANGE - 5 * (ROTATE_RANGE / SHAKE_STEP)) + 'deg);}\
+    58% {transform:scale(' + SCALE_SIZE + ') rotate(' + (ROTATE_RANGE - 6 * (ROTATE_RANGE / SHAKE_STEP)) + 'deg);}\
+    62% {transform:scale(' + SCALE_SIZE + ') rotate(-' + (ROTATE_RANGE - 7 * (ROTATE_RANGE / SHAKE_STEP)) + 'deg);}\
+    66% {transform:scale(' + SCALE_SIZE + ') rotate(' + (ROTATE_RANGE - 8 * (ROTATE_RANGE / SHAKE_STEP)) + 'deg);}\
+    70% {transform:scale(' + SCALE_SIZE + ') rotate(-' + (ROTATE_RANGE - 9 * (ROTATE_RANGE / SHAKE_STEP)) + 'deg);}\
+    74% {transform:scale(' + SCALE_SIZE + ');}\
+    100% {transform:none;}\
+}\
+';
+
+var BOLD_COLOR = '#9E44A1',
+    //阴影颜色
+BOLD_SIZE = '10px';
+var shadow = '\
+.clvpf-animate_shadow{animation:shadow 2s infinite;}\
+@keyframes shadow{\
+    0% {box-shadow: none;}\
+    50% {box-shadow: 0 0 ' + BOLD_SIZE + ' ' + BOLD_COLOR + ';}\
+    100% {box-shadow: none;}\
+}\
+';
+
+module.exports = shake + shadow;
+
+/***/ }),
+
+/***/ "./src/lib/clvpf-style.js":
+/*!********************************!*\
+  !*** ./src/lib/clvpf-style.js ***!
+  \********************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+var styleString = '\
+.clvpf-dialog{display:inline-block; max-width:200px; cursor:default; position:absolute;}\
+.clvpf-dialog .clvpf-dialog_body{display:inline-block; background:black; color:white; padding:.3em .5em; border-radius:3px; position:relative; min-width:4em; text-align:center;}\
+.clvpf-dialog .clvpf-dialog_body::before{content:" "; position: absolute; width:0; height:0; transform:translate(-50%,-50%); border:8px solid;}\
+.clvpf-dialog.clvpf-dialog_top .clvpf-dialog_body::before{border-color:black rgba(0,0,0,0) rgba(0,0,0,0) rgba(0,0,0,0); bottom:-24px; left:50%;}\
+.clvpf-dialog.clvpf-dialog_bottom .clvpf-dialog_body::before{border-color:rgba(0,0,0,0) rgba(0,0,0,0) black rgba(0,0,0,0); top:-8px; left:50%;}\
+.clvpf-dialog.clvpf-dialog_left .clvpf-dialog_body::before{border-color:rgba(0,0,0,0) rgba(0,0,0,0) rgba(0,0,0,0) black; top: 50%; right:-24px;}\
+.clvpf-dialog.clvpf-dialog_right .clvpf-dialog_body::before{border-color:rgba(0,0,0,0) black rgba(0,0,0,0) rgba(0,0,0,0); top:50%; left:-8px;}\
+.clvpf-dialog .clvpf-dialog_footer{font-size:10px; overflow:hidden;}\
+.clvpf-dialog .clvpf-dialog_footer span[class^=clvpf-btn_]{cursor:pointer;}\
+.clvpf-dialog .clvpf-dialog_footer .clvpf-btn_close{float:left; }\
+.clvpf-dialog .clvpf-dialog_footer .clvpf-btn_next{float:right;}\
+';
+
+module.exports = styleString;
+
+/***/ }),
+
+/***/ "./src/lib/creat-style.js":
+/*!********************************!*\
+  !*** ./src/lib/creat-style.js ***!
+  \********************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = function creatStyle(styleStr) {
+    //创建一个包含参数内容的style标签；
+    var styleNode = document.createElement('style');
+    styleNode.innerHTML = styleStr;
+
+    document.head.appendChild(styleNode);
+};
+
+/***/ }),
+
+/***/ "./src/lib/dialog-style.js":
+/*!*********************************!*\
+  !*** ./src/lib/dialog-style.js ***!
+  \*********************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+var dialogStyle = '\
+.clvpf-fb-dialog *{transition:all .3s;}\
+\
+.clvpf-fb_cover{position:fixed; left:0; right:0; top:0; bottom:0; background:rgba(255,255,255,0.1); z-index:19950123; transition:all .3s; display:none; opacity:0;}\
+.clvpf-fb-dialog{position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); width:400px; background-color:white; border-radius:4px; padding:20px; box-shadow:0 0 10px rgba(0,0,0,0.1); transition:all .3s;}\
+\
+.fb-dialog_title{font-size:18px; margin:0 0 1em 0;}\
+.fb-dialog_close{display:inline-block; float:right; width:1em; height:1em; cursor:pointer; position:relative;}\
+.fb-dialog_close::before, .fb-dialog_close::after{content:" "; position:absolute; width:100%; height:1px; background:#ddd; left:50%; top:50%;}\
+.fb-dialog_close::before{transform:translate(-50%,-50%) rotate(-45deg);}\
+.fb-dialog_close::after{transform:translate(-50%,-50%) rotate(45deg);}\
+.fb-dialog_close:hover::before, .fb-dialog_close:hover::after{background-color:red;}\
+\
+.fb-dialog_body{}\
+.fb-dialog_item{margin-bottom:20px;}\
+.fb-dialog_item label{font-size:14px; width:80px; display:inline-block; float:left;}\
+.fb-dialog_item .dialog_item_content{margin-left:80px;}\
+.clvpf-fb-dialog .btn{background-color:white; border:1px solid #eee; padding:.5em 1em; border-radius:4px; cursor:pointer; transition:all .3s;}\
+.btn.btn-submit:hover{background:#D9ECFF; color:#409EFF; border-color:#409EFF;}\
+\
+.btn-upload_input{display:none;}\
+.form-textarea{width:100%; height:6em; resize:none; border-radius:4px; border-color:#eee;}\
+.fb-dialog_item.error label{color:red;}\
+.fb-dialog_item.error .dialog_item_content>*{border-color:red;}\
+\
+.fb-dialog_footer{text-align:center;}\
+\
+.preview-con{margin-top: 5px; max-width:100%; border: 1px dashed #eee; display:none;}\
+.preview-con img{width:100%;}\
+';
+
+module.exports = dialogStyle;
+
+/***/ }),
+
+/***/ "./src/lib/icon-help.js":
+/*!******************************!*\
+  !*** ./src/lib/icon-help.js ***!
+  \******************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = 'data:image/png;base64,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';
+
+/***/ }),
+
+/***/ "./src/lib/popbtn-style.js":
+/*!*********************************!*\
+  !*** ./src/lib/popbtn-style.js ***!
+  \*********************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+var strStyle = '\
+.clv-btn_group{position:fixed; right:100px; bottom:100px; cursor:pointer;}\
+	.clv-btn_group .clv-ben{border-radius:50%; text-align:center; position:absolute; left:0; top:0; transform:translate(-50%,-50%); transition:all .3s; color:white; font-size:12px; box-shadow:0px 0px 12px 0 rgba(0,0,0,.1);}\
+    .clv-btn_group .clv-ben:hover{box-shadow:2px 2px 12px 0 rgba(0,0,0,.1);}\
+	.clv-ben_main{width:50px; height:50px; line-height:70px; background-color:#409EFF; display:table-cell; }\
+    .clv-ben_main img{width:60%; display:inline-block;}\
+    .clv-ben_main:hover{background-color:#66b1ff;}\
+	.clv-ben_sub{width:40px; height:40px; line-height:40px; background-color:#F56C6C;}\
+    .clv-ben_sub:hover{background-color:#f78989;}\
+';
+
+module.exports = strStyle;
 
 /***/ }),
 

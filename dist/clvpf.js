@@ -11810,7 +11810,7 @@ var dialogStyle = '\
 .clvpf-fb-dialog .btn{background-color:white; border:1px solid #eee; padding:.5em 1em; border-radius:4px; cursor:pointer; transition:all .3s;}\
 .btn.btn-submit:hover{background:#D9ECFF; color:#409EFF; border-color:#409EFF;}\
 \
-.btn-upload_input{display:none;}\
+.btn-upload_input{display:none !important;}\
 .form-textarea{width:100%; height:6em; resize:none; border-radius:4px; border-color:#eee;}\
 .fb-dialog_item.error label{color:red;}\
 .fb-dialog_item.error .dialog_item_content>*{border-color:red;}\
@@ -11848,7 +11848,7 @@ var strStyle = '\
 	.clv-btn_group .clv-ben{border-radius:50%; text-align:center; position:absolute; left:0; top:0; transform:translate(-50%,-50%); transition:all .3s; color:white; font-size:12px; box-shadow:0px 0px 12px 0 rgba(0,0,0,.1);}\
     .clv-btn_group .clv-ben:hover{box-shadow:2px 2px 12px 0 rgba(0,0,0,.1);}\
 	.clv-ben_main{width:50px; height:50px; line-height:70px; background-color:#409EFF; display:table-cell; }\
-    .clv-ben_main img{width:60%; display:inline-block;}\
+    .clv-ben_main img{width:60%; display:inline-block; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);}\
     .clv-ben_main:hover{background-color:#66b1ff;}\
 	.clv-ben_sub{width:40px; height:40px; line-height:40px; background-color:#F56C6C;}\
     .clv-ben_sub:hover{background-color:#f78989;}\

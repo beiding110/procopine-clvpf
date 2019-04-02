@@ -18,7 +18,7 @@ var dialogStyle = '\
 .clvpf-fb-dialog .btn{background-color:white; border:1px solid #eee; padding:.5em 1em; border-radius:4px; cursor:pointer; transition:all .3s;}\
 .btn.btn-submit:hover{background:#D9ECFF; color:#409EFF; border-color:#409EFF;}\
 \
-.btn-upload_input{display:none;}\
+.btn-upload_input{display:none !important;}\
 .form-textarea{width:100%; height:6em; resize:none; border-radius:4px; border-color:#eee;}\
 .fb-dialog_item.error label{color:red;}\
 .fb-dialog_item.error .dialog_item_content>*{border-color:red;}\

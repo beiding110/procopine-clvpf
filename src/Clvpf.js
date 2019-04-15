@@ -172,8 +172,13 @@ function creatDialog(node, noNext) {
         this.close();
     });
 
+    var btnsCon = document.createElement('div');
+    btnsCon.classList.add('clvpf-footer_btn-con');
+
     dialog.appendChild(dialogBody);
-    dialogFooter.appendChild(btnClose);
+
+    btnsCon.appendChild(btnClose);
+    dialogFooter.appendChild(btnsCon);
     dialog.appendChild(dialogFooter);
 
     if(!noNext) {
@@ -185,7 +190,7 @@ function creatDialog(node, noNext) {
             this.next();
         });
 
-        dialogFooter.appendChild(btnNext);
+        btnsCon.appendChild(btnNext);
     }
 
     return dialog;
